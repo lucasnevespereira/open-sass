@@ -1,16 +1,16 @@
 import Stripe from "stripe";
+import { env } from "./env";
 
-export const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = env.STRIPE_SECRET_KEY
+  ? new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: "2025-11-17.clover",
     })
   : (null as unknown as Stripe);
 
-// Pro subscription price IDs - set these in your .env
 export const PRICE_IDS = {
-  monthly: process.env.STRIPE_PRICE_MONTHLY!,
-  yearly: process.env.STRIPE_PRICE_YEARLY!,
-  lifetime: process.env.STRIPE_PRICE_LIFETIME!,
+  monthly: env.STRIPE_PRICE_MONTHLY,
+  yearly: env.STRIPE_PRICE_YEARLY,
+  lifetime: env.STRIPE_PRICE_LIFETIME,
 };
 
 // Create a checkout session for Pro subscription
@@ -20,7 +20,7 @@ export async function createCheckoutSession(
   plan: "monthly" | "yearly" | "lifetime",
   customerId?: string
 ): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = env.APP_URL;
   const priceId = PRICE_IDS[plan];
 
   if (!priceId) {
@@ -45,7 +45,7 @@ export async function createCheckoutSession(
 
 // Create a customer portal session for managing subscription
 export async function createPortalSession(customerId: string): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = env.APP_URL;
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
