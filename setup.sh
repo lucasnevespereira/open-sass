@@ -31,23 +31,33 @@ echo ""
 echo "Setting up $PROJECT_NAME..."
 echo ""
 
+# Database name
+DB_NAME="${PROJECT_SLUG}db"
+
 # Replace placeholders
 for file in package.json docker-compose.yml constants/index.ts; do
     if [ -f "$file" ]; then
         if [[ "$OSTYPE" == "darwin"* ]]; then
             sed -i '' "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
             sed -i '' "s|{{PROJECT_SLUG}}|$PROJECT_SLUG|g" "$file"
+            sed -i '' "s|{{DB_NAME}}|$DB_NAME|g" "$file"
         else
             sed -i "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
             sed -i "s|{{PROJECT_SLUG}}|$PROJECT_SLUG|g" "$file"
+            sed -i "s|{{DB_NAME}}|$DB_NAME|g" "$file"
         fi
     fi
 done
 
-# Copy .env.example to .env
+# Copy .env.example to .env and set db name
 if [ ! -f ".env" ]; then
     cp .env.example .env
-    echo "Created .env from .env.example"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|localdb|$DB_NAME|g" .env
+    else
+        sed -i "s|localdb|$DB_NAME|g" .env
+    fi
+    echo "Created .env with database: $DB_NAME"
 fi
 
 # Install dependencies

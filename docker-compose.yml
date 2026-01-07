@@ -6,11 +6,11 @@ services:
     environment:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: {{PROJECT_SLUG}}db
+      POSTGRES_DB: {{DB_NAME}}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U username -d {{PROJECT_SLUG}}db"]
+      test: ["CMD-SHELL", "pg_isready -U username -d {{DB_NAME}}"]
       interval: 5s
       timeout: 5s
       retries: 5
