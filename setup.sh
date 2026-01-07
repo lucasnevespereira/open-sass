@@ -42,8 +42,8 @@ echo ""
 echo -e "${YELLOW}Setting up your project...${NC}"
 echo ""
 
-# Generate auth secret
-AUTH_SECRET=$(openssl rand -base64 32)
+# Generate auth secret (hex to avoid special chars)
+AUTH_SECRET=$(openssl rand -hex 32)
 
 # Replace placeholders in all files
 echo "Replacing placeholders..."
@@ -59,15 +59,15 @@ FILES=(
 for file in "${FILES[@]}"; do
     if [ -f "$file" ]; then
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" "$file"
-            sed -i '' "s/{{PROJECT_SLUG}}/$PROJECT_SLUG/g" "$file"
-            sed -i '' "s/{{DB_NAME}}/$DB_NAME/g" "$file"
-            sed -i '' "s/{{GITHUB_USER}}/$GITHUB_USER/g" "$file"
+            sed -i '' "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
+            sed -i '' "s|{{PROJECT_SLUG}}|$PROJECT_SLUG|g" "$file"
+            sed -i '' "s|{{DB_NAME}}|$DB_NAME|g" "$file"
+            sed -i '' "s|{{GITHUB_USER}}|$GITHUB_USER|g" "$file"
         else
-            sed -i "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" "$file"
-            sed -i "s/{{PROJECT_SLUG}}/$PROJECT_SLUG/g" "$file"
-            sed -i "s/{{DB_NAME}}/$DB_NAME/g" "$file"
-            sed -i "s/{{GITHUB_USER}}/$GITHUB_USER/g" "$file"
+            sed -i "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
+            sed -i "s|{{PROJECT_SLUG}}|$PROJECT_SLUG|g" "$file"
+            sed -i "s|{{DB_NAME}}|$DB_NAME|g" "$file"
+            sed -i "s|{{GITHUB_USER}}|$GITHUB_USER|g" "$file"
         fi
     fi
 done
@@ -78,11 +78,11 @@ cp .env.example .env
 
 # Update .env with generated secret and correct db name
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s/your-secret-key-here/$AUTH_SECRET/g" .env
-    sed -i '' "s/{{PROJECT_SLUG}}db/$DB_NAME/g" .env
+    sed -i '' "s|your-secret-key-here|$AUTH_SECRET|g" .env
+    sed -i '' "s|{{PROJECT_SLUG}}db|$DB_NAME|g" .env
 else
-    sed -i "s/your-secret-key-here/$AUTH_SECRET/g" .env
-    sed -i "s/{{PROJECT_SLUG}}db/$DB_NAME/g" .env
+    sed -i "s|your-secret-key-here|$AUTH_SECRET|g" .env
+    sed -i "s|{{PROJECT_SLUG}}db|$DB_NAME|g" .env
 fi
 
 # Initialize git if not already
