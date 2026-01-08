@@ -67,18 +67,32 @@ export async function POST(request: NextRequest) {
           .from(users)
           .where(eq(users.stripeCustomerId, customerId));
 
-        if (user) {
-          await db
-            .update(users)
-            .set({
-              subscriptionStatus:
-                subscription.status === "active" ? "active" : "canceled",
-              subscriptionExpiresAt: new Date(
-                subscription.current_period_end * 1000
-              ),
-            })
-            .where(eq(users.id, user.id));
+        if (!user) break;
+
+        const isActive = subscription.status === "active";
+
+        let expiresAt: Date | null = null;
+        if (isActive && subscription.items.data.length > 0) {
+          const item = subscription.items.data[0];
+          const interval = item.price?.recurring?.interval;
+          expiresAt = new Date();
+          if (interval === "month") {
+            expiresAt.setMonth(expiresAt.getMonth() + 1);
+          } else if (interval === "year") {
+            expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+          }
         }
+
+        await db
+          .update(users)
+          .set({
+            isPro: isActive,
+            subscriptionStatus: isActive ? "active" : "canceled",
+            ...(expiresAt && { subscriptionExpiresAt: expiresAt }),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, user.id));
+
         break;
       }
 
