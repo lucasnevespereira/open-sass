@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -7,12 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  lint-and-build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,18 +28,41 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
-      - name: Build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Migration Files
+        run: pnpm run db:generate
+
+      - name: Build project
+        run: pnpm run build:local
         env:
           ENV: test
-          DATABASE_URL: postgresql://username:password@localhost:5432/testdb
-          BETTER_AUTH_SECRET: test-secret-key
+          DATABASE_URL: postgresql://username:password@localhost:5432/showwdb
+          BETTER_AUTH_SECRET: this-is-a-dummy-secret-for-ci-build-only-32chars
           BETTER_AUTH_URL: http://localhost:3000
           NEXT_PUBLIC_APP_URL: http://localhost:3000
+          UPLOADTHING_TOKEN: your-uploadthing-token-here
           STRIPE_SECRET_KEY: sk_test_xxxxx
           STRIPE_PUBLISHABLE_KEY: pk_test_xxxxx
           STRIPE_WEBHOOK_SECRET: whsec_xxxxx
+          STRIPE_CLIENT_ID: ca_xxxxx
           STRIPE_PRICE_MONTHLY: price_xxxxx
           STRIPE_PRICE_YEARLY: price_xxxxx
           STRIPE_PRICE_LIFETIME: price_xxxxx
           RESEND_API_KEY: re_xxxxxxxxx
-        run: pnpm run build:local

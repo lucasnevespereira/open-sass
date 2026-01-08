@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
-        const plan = session.metadata?.plan as "monthly" | "yearly" | "lifetime";
+        const plan = session.metadata?.plan as
+          | "monthly"
+          | "yearly"
+          | "lifetime";
 
         if (userId) {
           await db
@@ -45,7 +48,10 @@ export async function POST(request: NextRequest) {
               subscriptionExpiresAt:
                 plan === "lifetime"
                   ? null
-                  : new Date(Date.now() + (plan === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000),
+                  : new Date(
+                      Date.now() +
+                        (plan === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000
+                    ),
             })
             .where(eq(users.id, userId));
         }
@@ -65,8 +71,11 @@ export async function POST(request: NextRequest) {
           await db
             .update(users)
             .set({
-              subscriptionStatus: subscription.status === "active" ? "active" : "canceled",
-              subscriptionExpiresAt: new Date(subscription.current_period_end * 1000),
+              subscriptionStatus:
+                subscription.status === "active" ? "active" : "canceled",
+              subscriptionExpiresAt: new Date(
+                subscription.current_period_end * 1000
+              ),
             })
             .where(eq(users.id, user.id));
         }
@@ -98,6 +107,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
-    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 }
+    );
   }
 }
